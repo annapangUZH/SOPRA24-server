@@ -101,4 +101,17 @@ public class UserService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
     }
   }
+
+    public void validateUserToken(String remoteToken, String localToken) {
+      if (!remoteToken.equals(localToken)){
+          throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "usertoken does not match");
+      }
+    }
+
+    public void updateUser(User user, String birthday, String username) {
+      user.setBirthday(birthday);
+      user.setUsername(username);
+      userRepository.save(user);
+      userRepository.flush();
+    }
 }

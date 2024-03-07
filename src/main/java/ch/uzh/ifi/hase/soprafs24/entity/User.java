@@ -41,6 +41,18 @@ public class User implements Serializable {
   @Column(nullable = false)
   private UserStatus status;
 
+    public String getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(String birthday) {
+        this.birthday = birthday;
+    }
+
+    @Column
+  private String birthday;
+
+
   public String getPassword() {
         return password;
     }

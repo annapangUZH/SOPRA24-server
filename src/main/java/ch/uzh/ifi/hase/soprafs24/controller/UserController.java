@@ -4,12 +4,14 @@ import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.exceptions.UserNotFoundException;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPutDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserTokenDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,12 +73,12 @@ public class UserController {
     return tokenDTO;
   }
 
-    @PostMapping("/logout")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public void logoutUser(@RequestBody UserTokenDTO userTokenDTO) {
-      userService.doLogout(userTokenDTO.getToken());
-    }
+  @PostMapping("/logout")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public void logoutUser(@RequestBody UserTokenDTO userTokenDTO) {
+    userService.doLogout(userTokenDTO.getToken());
+  }
 
   @GetMapping("/users/{userId}")
   @ResponseStatus(HttpStatus.OK)
@@ -88,4 +90,17 @@ public class UserController {
     }
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user.get());
   }
+
+  @PutMapping("/users/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public void editUser(@PathVariable Long userId, @RequestBody UserPutDTO userPutDTO) throws UserNotFoundException {
+      Optional<User> user = userService.getUserById(userId);
+      if (user.isEmpty()) {
+          throw new UserNotFoundException(userId);
+      }
+      userService.validateUserToken(userPutDTO.getToken(), user.get().getToken());
+      userService.updateUser(user.get(), userPutDTO.getBirthday(), userPutDTO.getUsername());
+  }
+
 }
