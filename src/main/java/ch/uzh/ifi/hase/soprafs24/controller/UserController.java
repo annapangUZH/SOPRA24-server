@@ -1,8 +1,10 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.exceptions.UserNotFoundException;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserTokenDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * User Controller
@@ -52,6 +55,37 @@ public class UserController {
     // create user
     User createdUser = userService.createUser(userInput);
     // convert internal representation of user back to API
-    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+      return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+  }
+
+  @PostMapping("/login")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserTokenDTO loginUser(@RequestBody UserPostDTO userPostDTO) {
+    // convert API user to internal representation
+    User user = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+    String token = userService.doLogin(user);
+    UserTokenDTO tokenDTO = new UserTokenDTO();
+    tokenDTO.setToken(token);
+    // convert internal representation of user back to API
+    return tokenDTO;
+  }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public void logoutUser(@RequestBody UserTokenDTO userTokenDTO) {
+      userService.doLogout(userTokenDTO.getToken());
+    }
+
+  @GetMapping("/users/{userId}")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO getUserById(@PathVariable Long userId) throws UserNotFoundException {
+    Optional<User> user = userService.getUserById(userId);
+    if (user.isEmpty()) {
+      throw new UserNotFoundException(userId);
+    }
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user.get());
   }
 }

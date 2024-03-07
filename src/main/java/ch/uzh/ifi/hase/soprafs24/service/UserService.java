@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,9 +41,14 @@ public class UserService {
     return this.userRepository.findAll();
   }
 
+  public Optional<User> getUserById(long userId){
+    return this.userRepository.findById(userId);
+  }
+
   public User createUser(User newUser) {
     newUser.setToken(UUID.randomUUID().toString());
-    newUser.setStatus(UserStatus.OFFLINE);
+    newUser.setStatus(UserStatus.ONLINE);
+    newUser.setCreationDate(LocalDate.now());
     checkIfUserExists(newUser);
     // saves the given entity but data is only persisted in the database once
     // flush() is called
@@ -52,6 +59,30 @@ public class UserService {
     return newUser;
   }
 
+
+  public String doLogin(User user){
+    User databaseUser = userRepository.findByUsername(user.getUsername());
+    if (databaseUser == null){
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+    if (!databaseUser.getPassword().equals(user.getPassword())){
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid username or password");
+    }
+    databaseUser.setStatus(UserStatus.ONLINE);
+    userRepository.save(databaseUser);
+    userRepository.flush();
+    return databaseUser.getToken();
+  }
+
+    public void doLogout(String token){
+        User databaseUser = userRepository.findByToken(token);
+        if (databaseUser == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        databaseUser.setStatus(UserStatus.OFFLINE);
+        userRepository.save(databaseUser);
+        userRepository.flush();
+    }
   /**
    * This is a helper method that will check the uniqueness criteria of the
    * username and the name
@@ -64,16 +95,10 @@ public class UserService {
    */
   private void checkIfUserExists(User userToBeCreated) {
     User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-    User userByName = userRepository.findByName(userToBeCreated.getName());
 
     String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the name", "are"));
-    } else if (userByUsername != null) {
+    if (userByUsername != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
     }
   }
 }

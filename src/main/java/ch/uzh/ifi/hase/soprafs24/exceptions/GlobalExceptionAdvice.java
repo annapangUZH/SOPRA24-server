@@ -40,4 +40,14 @@ public class GlobalExceptionAdvice extends ResponseEntityExceptionHandler {
     log.error("Default Exception Handler -> caught:", ex);
     return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
   }
+  @ExceptionHandler(LoginInvalidException.class)
+  public ResponseStatusException handleLoginInvalidException(Exception ex, HttpServletRequest request) {
+    log.error("Request: {} raised {} with username {}", request.getRequestURL(), ex, ((LoginInvalidException)ex).getUsername());
+    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage(), ex);
+  }
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseStatusException handleUserNotFoundException(Exception ex, HttpServletRequest request) {
+    log.error("Request: {} raised {} with userId {}", request.getRequestURL(), ex, ((UserNotFoundException)ex).getUserId());
+    return new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+  }
 }
