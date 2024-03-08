@@ -60,7 +60,7 @@ public class UserService {
   }
 
 
-  public String doLogin(User user){
+  public User doLogin(User user){
     User databaseUser = userRepository.findByUsername(user.getUsername());
     if (databaseUser == null){
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -71,7 +71,7 @@ public class UserService {
     databaseUser.setStatus(UserStatus.ONLINE);
     userRepository.save(databaseUser);
     userRepository.flush();
-    return databaseUser.getToken();
+    return databaseUser;
   }
 
     public void doLogout(String token){
@@ -98,7 +98,7 @@ public class UserService {
 
     String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
     if (userByUsername != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
+      throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
     }
   }
 

@@ -14,6 +14,8 @@ public class UserGetDTO {
 
   private String token;
 
+  private String birthday;
+
   public Long getId() {
     return id;
   }
@@ -21,6 +23,14 @@ public class UserGetDTO {
   public void setId(Long id) {
     this.id = id;
   }
+
+    public String getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(String birthday) {
+        this.birthday = birthday;
+    }
 
     public String getToken() {
         return token;
